@@ -1,0 +1,4 @@
+FRAME_SIZE = (640, 480)
+H_WIND = 0.3
+H_FOV = 120
+F_LEN = 93.7
