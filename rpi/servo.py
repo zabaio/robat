@@ -1,32 +1,50 @@
 import numpy as np
-from gpiozero import Device, AngularServo
-#from gpiozero.pins.pigpio import PiGPIOFactory
+from gpiozero import AngularServo
+from constants import H_WIND, F_LEN, HALF_W
 import time
 
-#Device.pin_factory = PiGPIOFactory()
+MIN_A = -90
+MAX_A = 90
+MIN_P = 0.5/1000
+MAX_P = 2.5/1000
 
-AMIN = -60
-AMAX = 60
-PMIN = 0.5/1000
-PMAX = 2.5/1000
+SER_TM = 0.5
 
-class Servo:
+class ServoHandler:
 
     def __init__(self):
-        self.s = AngularServo(4, min_angle=AMIN, max_angle=AMAX, min_pulse_width=PMIN, max_pulse_width=PMAX)
+        self.s = AngularServo(4, min_angle=MIN_A, max_angle=MAX_A, min_pulse_width=MIN_P, max_pulse_width=MAX_P)
+        self.s.angle = 0
+        self.angle = self.s.angle
+        time.sleep(SER_TM)
+        self.s.detach()
+
+    def update(self, res):
+        print(res)  # TODO DELETE
+        if res is not None:
+            offset = res[0] + res[2] / 2 - HALF_W
+            print(offset / HALF_W)
+            if abs(offset) / HALF_W > H_WIND:
+                self.addAngle(-np.degrees(np.arctan(offset / F_LEN) / 2))
 
     def addAngle(self, delta):
-        print(delta)
-        nuovo = np.clip(self.s.angle + delta, AMIN, AMAX)
-        print(nuovo)
-        self.s.angle = nuovo
+        print(delta)  # TODO DELETE
+        self.s.angle = np.clip(self.angle + delta, MIN_A, MAX_A)
+        self.angle = self.s.angle
+        time.sleep(SER_TM)
+        self.s.detach()
+        print(self.s.angle)
+
+
+def main():
+    sh = ServoHandler()
+    delta = 10
+    while True:
+        if abs(sh.s.angle) == MAX_A:
+            delta = -delta
+        sh.addAngle(delta)
+        time.sleep(1)
 
 
 if __name__ == "__main__":
-    s = Servo()
-    delta = 10
-    while True:
-        if abs(s.s.angle) == AMAX:
-            delta = -delta
-        s.addAngle(delta)
-        time.sleep(1)
+    main()

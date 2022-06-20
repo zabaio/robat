@@ -1,3 +1,4 @@
+
 from time import sleep
 import RPi.GPIO as GPIO
 
@@ -95,5 +96,3 @@ play_note('C5')
 play_note('')
 
 sleep(2)
-
-GPIO.cleanup()
