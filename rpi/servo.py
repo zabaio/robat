@@ -1,6 +1,6 @@
 import numpy as np
 from gpiozero import AngularServo
-from constants import H_WIND, F_LEN, HALF_W
+from constants import H_WIND, F_LEN, HALF_W, Timer
 import time
 
 MIN_A = -90
@@ -18,14 +18,16 @@ class ServoHandler:
         self.angle = self.s.angle
         time.sleep(SER_TM)
         self.s.detach()
+        self.tm = Timer(2)
 
     def update(self, res):
-        print(res)  # TODO DELETE
-        if res is not None:
+        if res is not None and self.tm.isDone():
+            print("AAAA")
             offset = res[0] + res[2] / 2 - HALF_W
             print(offset / HALF_W)
             if abs(offset) / HALF_W > H_WIND:
                 self.addAngle(-np.degrees(np.arctan(offset / F_LEN) / 2))
+                self.tm.set(2)
 
     def addAngle(self, delta):
         print(delta)  # TODO DELETE

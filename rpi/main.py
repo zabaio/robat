@@ -10,26 +10,9 @@ from sensor import SensorHandler
 from display import DisplayHandler
 from buzzer import BuzzerHandler
 import argparse
-from constants import SEN_THR, Mode
+from constants import SEN_THR, Mode, Timer
 import time
 import RPi.GPIO as GPIO
-import random
-
-
-class Timer:
-    def __init__(self):
-        self.start = time.time()
-        self.timeout = None
-
-    def set(self, timeout):
-        self.start = time.time()
-        self.timeout = timeout
-
-    def isDone(self):
-        if self.timeout is None:
-            return False
-        else:
-            return time.time() - self.start > self.timeout
 
 
 class Robat:
@@ -50,12 +33,12 @@ class Robat:
         self.setMode(Mode.HUNTING)
         self.disH.start()
         self.camH.start()
-        self.senH.start()
+        #self.senH.start()
         self.buzH.start()
 
         while self.isPlaying:
 
-            print(self.mode)
+            print(self.mode, self.senH.ssx.avgDst, self.senH.sdx.avgDst)
             if self.gameTm.isDone() and self.mode != Mode.LOSE:
                 self.setMode(Mode.LOSE)
 
@@ -91,6 +74,7 @@ class Robat:
         self.camH.stop()
         self.buzH.stop()
         self.isPlaying = False
+        time.sleep(0.5)
 
     def checkArea(self):
         camRec, camRes = self.camH.try_get()
@@ -122,11 +106,14 @@ class Robat:
     def shortPress(self):
         if self.isPlaying:
             if self.mode in (Mode.SLEEPING, Mode.HAPPY):
+                self.gameTm.unpause()
                 self.setMode(Mode.HUNTING)
             elif self.rivalsLeft > 1:
                 self.rivalsLeft -= 1
+                self.gameTm.pause()
                 self.setMode(Mode.HAPPY)
             elif self.rivalsLeft == 1:
+                self.gameTm.pause()
                 self.setMode(Mode.WIN)
         else:
             self.rivalsLeft = (self.rivalsLeft % 9) + 1

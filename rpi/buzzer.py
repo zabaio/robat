@@ -95,12 +95,13 @@ tones = {
             "DS8": 4978
 }
 
-class BuzzerHandler:
 
+class BuzzerHandler:
     def __init__(self):
         buzzerPin = 17
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(buzzerPin, GPIO.OUT)
+        GPIO.setwarnings(False)
         self.p = GPIO.PWM(buzzerPin, 1)
         self.mode = None
         self.isRunning = False
@@ -120,58 +121,46 @@ class BuzzerHandler:
         self.isRunning = False
 
     def run(self):
-        while not self.isRunning:
+        while True:
+            while not self.isRunning:
+                time.sleep(0.2)
+            if self.mode is not None:
+                if self.mode.audio is not None:
+                    if not (self.mode.audio[1] is False and self.newMode is False):
+                        print("Playing", self.mode)
+                        self.playSong(self.mode.audio[0], self.mode.audio[2])
+            self.newMode = False
             time.sleep(0.2)
-        if self.mode.audio is not None:
-            if not (self.mode.audio[1] is False and self.newMode is False):
-                song = self.mode.audio[0]
-                for i in range(len(song)):
-                    if song[i] == "P":
-                        self.be_quiet()
-                    else:
-                        self.play_tone(tones[song[i]])
-                    time.sleep(0.5)
-                self.be_quiet()
-        self.newMode = False
 
-    def play_tone(self, frequency):
-        self.p.ChangeFrequency(frequency)
-
-    def be_quiet(self):
+    def playSong(self, song, freq):
+        self.p.start(50)
+        for i in range(len(song)):
+            if song[i] == "P":
+                self.p.stop()
+                time.sleep(1/freq)
+                self.p.start(50)
+            else:
+                self.playTone(tones[song[i]])
+                time.sleep(1/freq)
         self.p.stop()
 
-'''
-def loop():
-    while True:
-        if GPIO.input(buttonPin) == GPIO.LOW:
-            alertor()
-            print ('alertor turned on >>> ')
-        else :
-            stopAlertor()
-            print ('alertor turned off <<<')
-
-def alertor():
-    p.start(50)
-    for x in range(0,361): # Make frequency of the alertor consistent with the sine wave
-        sinVal = math.sin(x * (math.pi / 180.0)) # calculate the sine value
-        toneVal = 2000 + sinVal * 500 # Add to the resonant frequency with a Weighted
-        p.ChangeFrequency(toneVal) # Change Frequency of PWM to toneVal
-        time.sleep(0.001)
-
-def stopAlertor():
-    p.stop()
-'''
+    def playTone(self, frequency):
+        self.p.ChangeFrequency(frequency)
 
 if __name__ == '__main__':  # Program entrance
     buzH = BuzzerHandler()
+    buzH.start()
     buzH.setMode(Mode.HUNTING)
+    time.sleep(3)
+    buzH.setMode(Mode.HAPPY)
+    time.sleep(3)
+    buzH.setMode(Mode.SAD)
     time.sleep(3)
     buzH.setMode(Mode.LOCKED)
     time.sleep(5)
-    buzH.setMode(Mode.SAD)
-    time.sleep(3)
     buzH.setMode(Mode.HAPPY)
     time.sleep(3)
     buzH.setMode(Mode.WIN)
     time.sleep(3)
     buzH.setMode(Mode.LOSE)
+    time.sleep(3)
