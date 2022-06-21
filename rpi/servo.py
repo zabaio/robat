@@ -30,7 +30,6 @@ class ServoHandler:
                 self.tm.set(2)
 
     def addAngle(self, delta):
-        print(delta)  # TODO DELETE
         self.s.angle = np.clip(self.angle + delta, MIN_A, MAX_A)
         self.angle = self.s.angle
         time.sleep(SER_TM)

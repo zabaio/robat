@@ -104,9 +104,7 @@ def compute(frame, fdet, pdet):
         faces = faces[:, 0:4].astype(np.uint32)
         return biggestBox(faces), faces, None
     else:
-        people = None  # TODO RESTORE self.hog.detectMultiScale(self.frame, winStride=(8, 8), scale=1.10)[0]
-        # TODO RESTORE if not isinstance(people, np.ndarray):
-        # TODO RESTORE    people = None
+        people = None
         return biggestBox(people), None, people
 
 
